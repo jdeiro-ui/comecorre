@@ -1,6 +1,6 @@
 # Proposta — marcos 1 e 4 (para revisão)
 
-Status: esqueleto Next.js + motor de regras com testes. Telas ainda vazias, sem autenticação nem banco — aguardando revisão desta proposta.
+Status: marcos 1, 2 e 4 implementados (Supabase com login por link mágico, perfil, entrada manual de treino com classificação, motor de regras). Tela de cardápio ainda vazia.
 
 ## Estrutura de pastas
 
@@ -17,7 +17,9 @@ src/
     menu-schema.ts        # schema zod do item extraído pela IA
     scoring.ts            # aplica as regras: selo, ajustes, custo-benefício, ranking
     # (próximos) classify-workout.ts, menu-extract.ts, strava.ts
-  db/                     # (vazio até decidir banco/auth)
+  db/supabase.ts          # cliente Supabase (servidor) e usuário atual
+  proxy.ts                # renova sessão e exige login
+supabase/migrations/      # schema SQL + RLS
 tests/
   fixtures.ts             # cardápio de referência
   scoring.test.ts         # 24 combinações categoria × objetivo + modificadores
@@ -85,8 +87,27 @@ O modelo de IA só extrai e estima (tags + faixa de proteína). Pontuação (pes
 4. Aviso de cuidado com álcool a partir de **5 doses** — texto neutro sugerindo profissional de saúde.
 5. Pré/pós-treino não se aplicam em dia de descanso.
 
+## Classificação de treino (marco 2)
+
+Limiares em `src/rules/classificacao-treino.ts`:
+
+| Tipo | Leve | Moderada | Forte |
+|---|---|---|---|
+| Corrida | leve | **pergunta** (leve/qualidade) | qualidade |
+| Musculação | leve | **pergunta** (força/leve) | força |
+| Outro cardio | leve | **pergunta** (leve/qualidade) | qualidade |
+| Caminhada, mobilidade | sempre leve | | |
+
+- Corrida ≥ **90 min ou ≥ 18 km** → longão (qualquer intensidade).
+- Outro cardio (bike, natação…) ≥ 120 min → longão. *A confirmar.*
+- Dia: sem treino → descanso; 2+ treinos não leves → duplo; senão vale o treino mais exigente (leve + qualidade = qualidade).
+
+## Decidido
+
+- Banco e auth: **Supabase** (login por link mágico no e-mail; RLS em todas as tabelas).
+- Longão: a partir de 90 min ou 18 km.
+
 ## Perguntas em aberto
 
-- **Banco e auth:** Supabase (Postgres + auth por e-mail/OAuth prontos) ou SQLite + Auth.js para começar?
-- Limiar de longão (duração/distância) para a classificação do marco 2.
+- Limiar de longão para outros cardios (assumi 120 min).
 - Revisão por nutricionista esportivo da tabela, metas de proteína e pesos.
