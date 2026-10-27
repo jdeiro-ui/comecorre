@@ -18,3 +18,11 @@ npm run dev
 ```
 
 Regras revisáveis: `src/rules/nutrition-rules.ts` (comida) e `src/rules/classificacao-treino.ts` (treino).
+
+## Publicando (para usar no celular)
+
+1. Em [vercel.com](https://vercel.com), **Add New → Project** e importe este repositório (Next.js é detectado sozinho).
+2. Em **Environment Variables**, adicione `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+3. No Supabase, em **Authentication → URL Configuration**, defina o Site URL como o domínio da Vercel e
+   adicione `https://SEU-DOMINIO/auth/callback` às Redirect URLs.
+4. No celular, abra o endereço e use **Adicionar à tela inicial** (Safari: Compartilhar; Chrome: menu ⋮).

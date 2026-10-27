@@ -4,9 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ComeCorre",
   description: "O que comer neste cardápio, dado o seu treino de hoje e de amanhã.",
+  appleWebApp: { capable: true, title: "ComeCorre", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#1f8a4c" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
