@@ -7,7 +7,7 @@ import {
   ALCOOL,
   CATEGORIAS_QUE_PEDEM_VESPERA,
   LIMIARES,
-  META_PROTEINA_G,
+  META_PROTEINA,
   MODIFICADORES,
   PESOS,
   REGRAS,
@@ -34,10 +34,19 @@ export interface ContextoDia {
   /** Álcool planejado para hoje ou consumido ontem. */
   alcool?: { doses: number; quando: "hoje" | "ontem" };
   restricoes?: Restricao[];
+  /** Dados corporais mais recentes, para personalizar a meta de proteína. */
+  corpo?: ReferenciaCorporal;
+}
+
+export interface ReferenciaCorporal {
+  pesoKg?: number | null;
+  massaMagraKg?: number | null;
 }
 
 export interface RegraEfetiva {
   prioridades: Prioridades;
+  /** Meta de proteína desta refeição, em gramas. */
+  metaProteinaG: number;
   favorecer: Set<Tag>;
   evitar: Set<Tag>;
   notas: string[];
@@ -63,6 +72,16 @@ export interface ResultadoAnalise {
 
 const NIVEIS: Nivel[] = ["baixo", "moderado", "alto"];
 const CONFIANCA_BAIXA = 0.5;
+
+/** Meta de proteína por refeição: massa magra > peso > valor fixo, dentro dos limites. */
+export function metaProteinaG(prioridade: Prioridades["proteina"], corpo?: ReferenciaCorporal): number {
+  let meta: number;
+  if (corpo?.massaMagraKg) meta = corpo.massaMagraKg * META_PROTEINA.porKgMassaMagra[prioridade];
+  else if (corpo?.pesoKg) meta = corpo.pesoKg * META_PROTEINA.porKgPeso[prioridade];
+  else return META_PROTEINA.fixaG[prioridade];
+  const { min, max } = META_PROTEINA.limitesG;
+  return Math.round(Math.min(max, Math.max(min, meta)));
+}
 
 export function regraEfetiva(ctx: ContextoDia): RegraEfetiva {
   const base = REGRAS[ctx.categoriaHoje][ctx.objetivo];
@@ -92,7 +111,13 @@ export function regraEfetiva(ctx: ContextoDia): RegraEfetiva {
   // Em conflito, "evitar" prevalece (postura conservadora).
   evitar.forEach((t) => favorecer.delete(t));
 
-  return { prioridades: { ...base.prioridades, carboidrato, proteina }, favorecer, evitar, notas };
+  return {
+    prioridades: { ...base.prioridades, carboidrato, proteina },
+    metaProteinaG: metaProteinaG(proteina, ctx.corpo),
+    favorecer,
+    evitar,
+    notas,
+  };
 }
 
 function nivelCarboidrato(tags: Tag[]): Nivel | undefined {
@@ -152,7 +177,7 @@ export function avaliarItem(item: ItemCardapio, regra: RegraEfetiva, restricoes:
     pontos += PESOS.proteinaAtingeMeta;
     razoes.push("Boa fonte de proteína.");
   } else if (proteina) {
-    const meta = META_PROTEINA_G[prioridades.proteina];
+    const meta = regra.metaProteinaG;
     const media = (proteina.min + proteina.max) / 2;
     if (media >= meta) {
       pontos += PESOS.proteinaAtingeMeta;

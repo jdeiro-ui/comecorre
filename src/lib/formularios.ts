@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CAMPOS_BIO, NOMES_CAMPOS_BIO, type CampoBio } from "./bio-schema";
 import { INTENSIDADES, TIPOS_TREINO } from "@/rules/classificacao-treino";
 import { CATEGORIAS, OBJETIVOS, RESTRICOES } from "@/rules/types";
 
@@ -47,4 +48,30 @@ export type TreinoForm = z.infer<typeof treinoSchema>;
 
 export function lerTreino(fd: FormData) {
   return treinoSchema.safeParse(Object.fromEntries(fd));
+}
+
+const medidasBioSchema = z.object(
+  Object.fromEntries(
+    NOMES_CAMPOS_BIO.map((c) => [c, numeroOpcional(CAMPOS_BIO[c].min, CAMPOS_BIO[c].max)]),
+  ) as Record<CampoBio, ReturnType<typeof numeroOpcional>>,
+);
+
+export const bioSchema = z
+  .object({
+    medido_em: z.iso.date({ error: "Informe a data da medição." }),
+    fonte: z.enum(["print", "manual"]),
+    medidas: medidasBioSchema,
+  })
+  .refine((b) => Object.values(b.medidas).some((v) => v !== undefined), {
+    message: "Preencha pelo menos uma medida.",
+    path: ["medidas"],
+  });
+export type BioForm = z.infer<typeof bioSchema>;
+
+export function lerBio(fd: FormData) {
+  return bioSchema.safeParse({
+    medido_em: fd.get("medido_em"),
+    fonte: fd.get("fonte"),
+    medidas: Object.fromEntries(NOMES_CAMPOS_BIO.map((c) => [c, fd.get(c)])),
+  });
 }

@@ -239,8 +239,20 @@ export const PESOS = {
   tagEvitada: -2,
 } as const;
 
-/** Meta de proteína por refeição (gramas), conforme a prioridade de proteína. */
-export const META_PROTEINA_G = { moderado: 20, alto: 30 } as const;
+/**
+ * Meta de proteína por refeição (gramas), conforme a prioridade de proteína do dia.
+ * Usa a melhor referência corporal disponível: massa magra (bioimpedância) > peso > valor fixo.
+ */
+export const META_PROTEINA = {
+  /** g por kg de massa magra, por refeição. */
+  porKgMassaMagra: { moderado: 0.3, alto: 0.45 },
+  /** g por kg de peso corporal, por refeição. */
+  porKgPeso: { moderado: 0.25, alto: 0.4 },
+  /** Sem dados corporais. */
+  fixaG: { moderado: 20, alto: 30 },
+  /** Limites da meta por refeição, para evitar valores extremos. */
+  limitesG: { min: 15, max: 45 },
+} as const;
 
 /** Pontuação mínima para cada selo. Abaixo de `serve` → `evite`. */
 export const LIMIARES: Record<Exclude<Selo, "evite">, number> = {

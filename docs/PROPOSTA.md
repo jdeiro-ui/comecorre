@@ -102,12 +102,28 @@ Limiares em `src/rules/classificacao-treino.ts`:
 - Outro cardio (bike, natação…) ≥ 120 min → longão. *A confirmar.*
 - Dia: sem treino → descanso; 2+ treinos não leves → duplo; senão vale o treino mais exigente (leve + qualidade = qualidade).
 
+## Bioimpedância e meta de proteína
+
+Tela **Corpo** (`/corpo`): envio do print da balança → a IA transcreve os valores (sem armazenar a imagem) → o usuário confere/corrige → salva em `body_compositions`. Também aceita preenchimento manual. Histórico com exclusão por medição.
+
+A meta de proteína por refeição deixa de ser fixa (`META_PROTEINA` em `nutrition-rules.ts`):
+
+| Referência disponível | Prioridade moderada | Prioridade alta |
+|---|---|---|
+| Massa magra (bioimpedância) | 0,30 g/kg | 0,45 g/kg |
+| Só peso (medição ou perfil) | 0,25 g/kg | 0,40 g/kg |
+| Nenhuma | 20 g | 30 g |
+
+Sempre limitada a 15–45 g por refeição. Ex.: massa magra 65,3 kg → ~20 g / ~29 g.
+Os demais dados (gordura visceral, TMB, água…) só são registrados e exibidos — não entram nos vereditos.
+
 ## Decidido
 
 - Banco e auth: **Supabase** (login por link mágico no e-mail; RLS em todas as tabelas).
 - Longão: a partir de 90 min ou 18 km.
+- Bioimpedância personaliza a meta de proteína (não é contador de calorias: TMB não é usada).
 
 ## Perguntas em aberto
 
 - Limiar de longão para outros cardios (assumi 120 min).
-- Revisão por nutricionista esportivo da tabela, metas de proteína e pesos.
+- Revisão por nutricionista esportivo da tabela, dos fatores de proteína (g/kg) e dos pesos.

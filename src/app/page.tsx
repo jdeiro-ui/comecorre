@@ -72,7 +72,7 @@ export default async function Hoje() {
         <Link href="/analisar">Analisar cardápio</Link>
       </p>
       <p>
-        <Link href="/onboarding">Perfil</Link>
+        <Link href="/corpo">Corpo</Link> · <Link href="/onboarding">Perfil</Link>
       </p>
       <form action={sair}>
         <button>Sair</button>
